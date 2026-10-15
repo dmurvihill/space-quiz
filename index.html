@@ -303,14 +303,30 @@
     const nextButton = document.querySelector("#next");
     let current = 0;
     let score = 0;
+    let attemptQuestions = [];
+
+    function createQuizQuestions() {
+      return questions.map(question => {
+        const options = question.options.map((text, index) => ({ text, index }));
+        for (let i = options.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [options[i], options[j]] = [options[j], options[i]];
+        }
+        return {
+          ...question,
+          options: options.map(option => option.text),
+          answer: options.findIndex(option => option.index === question.answer)
+        };
+      });
+    }
 
     function renderQuestion() {
-      const item = questions[current];
-      counter.textContent = `Question ${current + 1} of ${questions.length}`;
+      const item = attemptQuestions[current];
+      counter.textContent = `Question ${current + 1} of ${attemptQuestions.length}`;
       category.textContent = item.category;
       questionText.textContent = item.question;
       scoreLabel.textContent = score;
-      progress.style.width = `${(current / questions.length) * 100}%`;
+      progress.style.width = `${(current / attemptQuestions.length) * 100}%`;
       progressTrack.setAttribute("aria-valuenow", String(current));
       feedback.textContent = "";
       feedback.className = "feedback";
@@ -330,7 +346,7 @@
     }
 
     function chooseAnswer(selected) {
-      const item = questions[current];
+      const item = attemptQuestions[current];
       const buttons = [...answers.querySelectorAll("button")];
       buttons.forEach(button => { button.disabled = true; });
 
@@ -371,6 +387,7 @@
     function startQuiz() {
       current = 0;
       score = 0;
+      attemptQuestions = createQuizQuestions();
       intro.hidden = true;
       result.hidden = true;
       quiz.hidden = false;
@@ -381,7 +398,7 @@
     document.querySelector("#restart").addEventListener("click", startQuiz);
     nextButton.addEventListener("click", () => {
       current += 1;
-      if (current >= questions.length) showResults();
+      if (current >= attemptQuestions.length) showResults();
       else renderQuestion();
     });
   </script>
